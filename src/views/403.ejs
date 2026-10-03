@@ -1,0 +1,17 @@
+<%- include('partials/head') %>
+<main class="error-page">
+    <i class="material-icons large red-text text-lighten-1">block</i>
+    <p class="code red-text text-lighten-1">403</p>
+    <h5>Acceso denegado</h5>
+    <p class="grey-text">No tienes permisos suficientes para ver esta página.</p>
+    <a href="/signIn" class="btn teal darken-2" id="btnBack">
+        <i class="material-icons left">arrow_back</i>Volver a mi inicio
+    </a>
+</main>
+<%- include('partials/footer') %>
+<script>
+    const s = getSession();
+    document.getElementById('btnBack').href = s ? dashboardFor(s.roles) : '/signIn';
+</script>
+</body>
+</html>

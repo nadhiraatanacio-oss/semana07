@@ -1,0 +1,60 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+<main class="container hidden-until-auth">
+    <h4 class="page-title" id="welcome">Bienvenido</h4>
+    <p class="grey-text">Aquí están tus datos</p>
+
+    <div class="row">
+        <div class="col s12 m4">
+            <div class="card center-align">
+                <div class="card-content">
+                    <div id="avatar"></div>
+                    <h5 id="fullName"></h5>
+                    <div id="roles"></div>
+                    <a href="/profile" class="btn teal darken-2" style="margin-top:14px">
+                        <i class="material-icons left">edit</i>Editar mi cuenta
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col s12 m8">
+            <div class="card">
+                <div class="card-content">
+                    <span class="card-title">Mis datos</span>
+                    <ul class="info-list" id="info"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<%- include('partials/footer') %>
+<script>
+    const session = requireAuth(['user', 'admin']);
+    if (session) loadData();
+
+    async function loadData() {
+        try {
+            const u = await apiFetch('/api/users/me');
+            document.getElementById('welcome').textContent = `Bienvenido, ${u.name}`;
+            document.getElementById('avatar').innerHTML = avatarHtml(u);
+            document.getElementById('fullName').textContent = `${u.name} ${u.lastName}`;
+            document.getElementById('roles').innerHTML = rolesHtml(u.roles);
+
+            const rows = [
+                ['email', 'Email', u.email],
+                ['phone', 'Teléfono', u.phoneNumber],
+                ['cake', 'Fecha de nacimiento', formatDate(u.birthdate)],
+                ['hourglass_empty', 'Edad', `${u.age} años`],
+                ['home', 'Dirección', u.address || '-'],
+                ['event', 'Miembro desde', formatDate(u.createdAt)]
+            ];
+            document.getElementById('info').innerHTML = rows.map(([icon, label, value]) =>
+                `<li><i class="material-icons teal-text">${icon}</i><b>${label}:</b> ${esc(value)}</li>`
+            ).join('');
+        } catch (err) {
+            showToast(err.message);
+        }
+    }
+</script>
+</body>
+</html>

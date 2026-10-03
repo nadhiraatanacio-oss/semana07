@@ -3,11 +3,13 @@ import authService from '../services/AuthService.js';
 class AuthController {
     async signUp(req, res, next) {
         try {
-            const payload = req.body;
-            if (!payload.email || !payload.password)
+            const { roles, ...data } = req.body;
+
+            if (!data.email || !data.password)
                 return res.status(400).json({ message: 'El email y password son requeridos' });
 
-            const user = await authService.signUp(payload);
+            // el registro público siempre asigna el rol user
+            const user = await authService.signUp({ ...data, roles: ['user'] });
             return res.status(201).json(user);
         } catch (err) {
             next(err);

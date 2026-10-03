@@ -11,4 +11,7 @@ router.get('/', authenticate, authorize(['admin']), UserController.getAll);
 // GET /api/users/me (cualquier usuario autenticado)
 router.get('/me', authenticate, authorize([]), UserController.getMe);
 
+// PUT /api/users/me (editar mis datos)
+router.put('/me', authenticate, authorize([]), UserController.updateMe);
+
 export default router;

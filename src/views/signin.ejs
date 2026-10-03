@@ -1,0 +1,57 @@
+<%- include('partials/head') %>
+<main class="auth-page">
+    <div class="card auth-card">
+        <div class="auth-header">
+            <i class="material-icons">lock_open</i>
+            <h5>Iniciar sesión</h5>
+        </div>
+        <div class="card-content">
+            <form id="formSignIn" novalidate>
+                <div class="input-field">
+                    <i class="material-icons prefix">email</i>
+                    <input id="email" type="email" autocomplete="email">
+                    <label for="email">Email</label>
+                </div>
+                <div class="input-field">
+                    <i class="material-icons prefix">lock</i>
+                    <input id="password" type="password" autocomplete="current-password">
+                    <label for="password">Password</label>
+                </div>
+                <button class="btn waves-effect teal darken-2 full-width" type="submit">Ingresar</button>
+            </form>
+            <p class="center-align">¿No tienes cuenta? <a href="/signUp">Regístrate</a></p>
+        </div>
+    </div>
+</main>
+<%- include('partials/footer') %>
+<script>
+    // Si ya hay sesión activa, ir directo a su dashboard
+    const active = getSession();
+    if (active) window.location.replace(dashboardFor(active.roles));
+
+    document.getElementById('formSignIn').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+
+        if (!email || !password) return showToast('Ingresa tu email y password');
+
+        try {
+            const res = await fetch('/api/auth/signIn', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            if (!res.ok) return showToast(data.message);
+
+            setToken(data.token);
+            const session = getSession();
+            window.location.replace(dashboardFor(session.roles));
+        } catch (err) {
+            showToast('No se pudo conectar con el servidor');
+        }
+    });
+</script>
+</body>
+</html>

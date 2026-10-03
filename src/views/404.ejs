@@ -1,0 +1,17 @@
+<%- include('partials/head') %>
+<main class="error-page">
+    <i class="material-icons large teal-text">search_off</i>
+    <p class="code teal-text">404</p>
+    <h5>Página no encontrada</h5>
+    <p class="grey-text">La ruta que buscas no existe o fue movida.</p>
+    <a href="/signIn" class="btn teal darken-2" id="btnBack">
+        <i class="material-icons left">home</i>Ir al inicio
+    </a>
+</main>
+<%- include('partials/footer') %>
+<script>
+    const s = getSession();
+    document.getElementById('btnBack').href = s ? dashboardFor(s.roles) : '/signIn';
+</script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+<main class="container hidden-until-auth">
+    <h4 class="page-title">Mi cuenta</h4>
+    <p class="grey-text">Revisa y actualiza tu información</p>
+
+    <div class="row">
+        <div class="col s12 m4">
+            <div class="card center-align">
+                <div class="card-content">
+                    <div id="avatar"></div>
+                    <h5 id="fullName"></h5>
+                    <p id="ageText" class="grey-text"></p>
+                    <div id="roles"></div>
+                    <p id="since" class="grey-text" style="margin-top:10px"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col s12 m8">
+            <div class="card">
+                <div class="card-content">
+                    <span class="card-title">Editar datos</span>
+                    <form id="formProfile" novalidate>
+                        <div class="row" style="margin-bottom:0">
+                            <div class="input-field col s12">
+                                <input id="email" type="email" disabled>
+                                <label for="email">Email (no editable)</label>
+                            </div>
+                            <div class="input-field col s12 m6">
+                                <input id="name" type="text">
+                                <label for="name">Nombre</label>
+                            </div>
+                            <div class="input-field col s12 m6">
+                                <input id="lastName" type="text">
+                                <label for="lastName">Apellido</label>
+                            </div>
+                            <div class="input-field col s12 m6">
+                                <input id="phoneNumber" type="tel">
+                                <label for="phoneNumber">Teléfono</label>
+                            </div>
+                            <div class="input-field col s12 m6">
+                                <input id="birthdate" type="date">
+                                <label for="birthdate" class="active">Fecha de nacimiento</label>
+                            </div>
+                            <div class="input-field col s12">
+                                <input id="url_profile" type="url">
+                                <label for="url_profile">URL de foto de perfil</label>
+                            </div>
+                            <div class="input-field col s12">
+                                <input id="address" type="text">
+                                <label for="address">Dirección</label>
+                            </div>
+                            <div class="input-field col s12">
+                                <input id="password" type="password" autocomplete="new-password">
+                                <label for="password">Nuevo password (opcional)</label>
+                                <span class="helper-text">Déjalo vacío si no quieres cambiarlo</span>
+                            </div>
+                        </div>
+                        <button class="btn waves-effect teal darken-2" type="submit" style="margin-top:20px">
+                            <i class="material-icons left">save</i>Guardar cambios
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<%- include('partials/footer') %>
+<script>
+    const session = requireAuth([]);
+    const fields = ['name', 'lastName', 'phoneNumber', 'birthdate', 'url_profile', 'address'];
+    if (session) loadProfile();
+
+    function renderCard(u) {
+        document.getElementById('avatar').innerHTML = avatarHtml(u);
+        document.getElementById('fullName').textContent = `${u.name} ${u.lastName}`;
+        document.getElementById('ageText').textContent = `${u.age} años`;
+        document.getElementById('roles').innerHTML = rolesHtml(u.roles);
+        document.getElementById('since').textContent = `Registrado el ${formatDate(u.createdAt)}`;
+    }
+
+    async function loadProfile() {
+        try {
+            const u = await apiFetch('/api/users/me');
+            renderCard(u);
+            document.getElementById('email').value = u.email;
+            fields.forEach(f => {
+                const value = f === 'birthdate' && u.birthdate ? u.birthdate.slice(0, 10) : (u[f] || '');
+                document.getElementById(f).value = value;
+            });
+            M.updateTextFields();
+        } catch (err) {
+            showToast(err.message);
+        }
+    }
+
+    document.getElementById('formProfile').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const body = {};
+        fields.forEach(f => body[f] = document.getElementById(f).value.trim());
+
+        if (!body.name || !body.lastName || !body.phoneNumber || !body.birthdate) {
+            return showToast('Nombre, apellido, teléfono y fecha de nacimiento son obligatorios');
+        }
+
+        const password = document.getElementById('password').value;
+        if (password) {
+            if (!PASSWORD_REGEX.test(password)) {
+                return showToast('El password debe tener mínimo 8 caracteres, 1 mayúscula, 1 dígito y 1 caracter especial');
+            }
+            body.password = password;
+        }
+
+        try {
+            const u = await apiFetch('/api/users/me', { method: 'PUT', body: JSON.stringify(body) });
+            renderCard(u);
+            document.getElementById('password').value = '';
+            showToast('Datos actualizados correctamente', 'ok');
+        } catch (err) {
+            showToast(err.message);
+        }
+    });
+</script>
+</body>
+</html>

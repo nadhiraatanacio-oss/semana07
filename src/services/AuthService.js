@@ -2,9 +2,10 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import userRepository from '../repositories/UserRepository.js';
 import roleRepository from '../repositories/RoleRepository.js';
+import validatePassword from '../utils/validatePassword.js';
 
 class AuthService {
-    async signUp({ email, password, name, roles = ['user'] }) {
+    async signUp({ email, password, name, lastName, phoneNumber, birthdate, url_profile, address, roles = ['user'] }) {
         const existing = await userRepository.findByEmail(email);
         if (existing) {
             const err = new Error('El email ya se encuentra en uso');
@@ -12,11 +13,12 @@ class AuthService {
             throw err;
         }
 
-        // lógica para encriptar el password
+        // validar reglas del password antes de encriptar
+        validatePassword(password);
+
         const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS ?? '10', 10);
         const hashed = await bcrypt.hash(password, saltRounds);
 
-        // asignar los role ids
         const roleDocs = [];
         for (const r of roles) {
             let roleDoc = await roleRepository.findByName(r);
@@ -24,12 +26,23 @@ class AuthService {
             roleDocs.push(roleDoc._id);
         }
 
-        const user = await userRepository.create({ email, password: hashed, name, roles: roleDocs });
+        const user = await userRepository.create({
+            email,
+            password: hashed,
+            name,
+            lastName,
+            phoneNumber,
+            birthdate,
+            url_profile,
+            address,
+            roles: roleDocs
+        });
 
         return {
             id: user._id,
             email: user.email,
-            name: user.name
+            name: user.name,
+            lastName: user.lastName
         };
     }
 
@@ -54,9 +67,7 @@ class AuthService {
                 roles: user.roles.map(r => r.name)
             },
             process.env.JWT_SECRET,
-            {
-                expiresIn: process.env.JWT_EXPIRES_IN || '1h'
-            }
+            { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
         );
 
         return { token };
