@@ -26,3 +26,11 @@ nav .brand-logo { display: flex; align-items: center; gap: 6px; font-size: 1.6re
 
 .error-page { text-align: center; padding: 70px 16px; }
 .error-page .code { font-size: 7rem; font-weight: 700; line-height: 1; margin: 0; }
+/* Avisos abajo al centro */
+#toast-container {
+    top: auto !important;
+    right: auto !important;
+    bottom: 30px !important;
+    left: 50% !important;
+    transform: translateX(-50%);
+}

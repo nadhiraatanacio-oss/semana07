@@ -113,6 +113,7 @@ function esc(value) {
 }
 
 function showToast(message, type = 'error') {
+    M.Toast.dismissAll(); // quita el aviso anterior para que no se repita
     M.toast({ html: esc(message), classes: type === 'ok' ? 'green darken-1' : 'red darken-1' });
 }
 
